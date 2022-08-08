@@ -49,11 +49,11 @@ make-image: make-image-arch-$(GOARCH)
 
 make-image-arch-%:
 ifdef BASEIMAGE
-	docker build --pull --build-arg BASEIMAGE=${BASEIMAGE} \
+	docker build --pull --push --build-arg BASEIMAGE=${BASEIMAGE} \
 		-t ${IMAGE}-$*:${TAG} \
 		-f Dockerfile.$* .
 else
-	docker build --pull \
+	docker build --pull --push \
 		-t ${IMAGE}-$*:${TAG} \
 		-f Dockerfile.$* .
 endif
@@ -105,3 +105,8 @@ test-in-docker: clean docker-builder
 	docker run ${RM_FLAG} -v `pwd`:/cluster-autoscaler/:Z autoscaling-builder:latest bash -c 'cd /cluster-autoscaler && go test -race ./... ${TAGS_FLAG}'
 
 .PHONY: all build test-unit clean format execute-release dev-release docker-builder build-in-docker release generate push-image push-manifest
+
+deploy:
+	make make-image REGISTRY=paskalmaksim TAG=dev
+publish:
+	make make-image REGISTRY=paskalmaksim TAG=`git rev-parse --short HEAD`
